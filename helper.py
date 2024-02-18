@@ -1,6 +1,6 @@
 import time
 
-from ome import (OrderData, Order, Book)
+from order_book import (OrderData, Order, Book)
 
 
 def build_order(order_data: OrderData) -> Order:

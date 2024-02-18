@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Union, Dict, NamedTuple, Optional
 
-from data_structures.double_linked_list import LinkedList
-from data_structures.avl_tree import AVLTree
+from order_book.double_linked_list import LinkedList
+from order_book.avl_tree import AVLTree
 
 
 ID_TYPE = Union[int, str]
@@ -117,7 +117,7 @@ class Book:
         if price_level is None:
             return self._add_new_price_level(price_tree, best_price_level, order)
         else:
-            price_level.total_volume += order.volume
+            price_level.add_order(order)
             price_tree.update(price_level.price, price_level)
             return best_price_level
 
@@ -202,7 +202,7 @@ class Book:
 
             maker_order = self.best_bid_price_level.pop_order()
 
-            if maker_order.price > order.price:
+            if maker_order.price < order.price:
                 self.best_bid_price_level.re_add_order(maker_order)
                 break
 
