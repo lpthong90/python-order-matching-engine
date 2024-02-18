@@ -1,12 +1,14 @@
 import sys
 from typing import Union, TypeVar, Generic, List
 
-T = TypeVar("T")
+K = TypeVar("K")
+V = TypeVar("V")
 
 
-class TreeNode(Generic[T]):
-    def __init__(self, key: T):
-        self.key: T = key
+class TreeNode(Generic[K, V]):
+    def __init__(self, key: K, value: V):
+        self.key: K = key
+        self.value: V = value
 
         self.height: int = 1
         self.left: Union[TreeNode, None] = None
@@ -30,24 +32,32 @@ class TreeNode(Generic[T]):
 
     @property
     def min_node(self):
-        return self._get_min_node()
+        if self.left is None:
+            return self
+        return self.left.min_node
+
+    @property
+    def min_node_value(self):
+        if self.min_node is not None:
+            return self.min_node.value
 
     @property
     def max_node(self):
-        return self._get_max_node()
-
-    def _get_min_node(self):
-        if self.left is None:
-            return self
-        return self._get_min_node(self.left)
-
-    def _get_max_node(self):
         if self.right is None:
             return self
-        return self._get_max_node(self.right)
+        return self.right.max_node
+
+    @property
+    def max_node_value(self):
+        if self.max_node is not None:
+            return self.max_node.value
+
+    @property
+    def data(self):
+        return self.key, self.value
 
 
-class AVLTree:
+class AVLTree(Generic[K, V]):
     def __init__(self):
         self.root: TreeNode = None
 
@@ -79,11 +89,12 @@ class AVLTree:
 
         return root
 
-    def insert_node(self, node: TreeNode):
+    def insert_node(self, key: K, value: V):
+        node = TreeNode(key, value)
         self.root = self._insert_node(self.root, node)
 
     # Function to delete a node
-    def _delete_node(self, root: TreeNode, node: TreeNode):
+    def _delete_node(self, root: TreeNode, node: TreeNode) -> TreeNode:
         # Find the node to be deleted and remove it
         if root is None:
             return root
@@ -102,6 +113,7 @@ class AVLTree:
                 return temp
             temp = root.right.min_node
             root.key = temp.key
+            root.value = temp.value
             root.right = self._delete_node(root.right, temp)
 
         if root is None:
@@ -109,7 +121,6 @@ class AVLTree:
 
         # Update the balance factor of nodes
         root.height = 1 + max(root.left_height, root.right_height)
-
         balance_factor = root.balance
 
         # Balance the tree
@@ -129,11 +140,12 @@ class AVLTree:
 
         return root
 
-    def delete_node(self, node: TreeNode):
+    def delete_node(self, key: K):
+        node = TreeNode(key, None)
         self.root = self._delete_node(self.root, node)
 
     # Function to perform left rotation
-    def _left_rotate(self, z):
+    def _left_rotate(self, z: TreeNode) -> TreeNode:
         y = z.right
         t2 = y.left
         y.left = z
@@ -143,7 +155,7 @@ class AVLTree:
         return y
 
     # Function to perform right rotation
-    def _right_rotate(self, z):
+    def _right_rotate(self, z: TreeNode) -> TreeNode:
         y = z.left
         t3 = y.right
         y.right = z
@@ -152,19 +164,50 @@ class AVLTree:
         y.height = 1 + max(y.left_height, y.right_height)
         return y
 
-    def _pre_order(self, root):
+    def _pre_order(self, root: TreeNode):
         if not root:
             return
         print("{0} ".format(root.key), end="")
         self._pre_order(root.left)
         self._pre_order(root.right)
 
-    def find(self, node: TreeNode) -> Union[TreeNode, None]:
-        pass
+    def _find(self, root: TreeNode, node: TreeNode):
+        if root is None:
+            return None
+        if root.key == node.key:
+            return root
+        if node.key < root.key and root.left:
+            return self._find(root.left, node)
+        if root.key < node.key and root.right:
+            return self._find(root.right, node)
+        return None
+
+    def find(self, key: K) -> Union[TreeNode, None]:
+        node = TreeNode(key, None)
+        return self._find(self.root, node)
+
+    def find_value(self, key: K) -> Union[V, None]:
+        node = self.find(key)
+        if node is not None:
+            return node.value
+
+    def _update(self, root: TreeNode, node: TreeNode):
+        if root.key == node.key:
+            root.value = node.value
+            return True
+        if node.key < root.key and root.left:
+            return self._update(root.left, node)
+        if root.key < node.key and root.right:
+            return self._update(root.right, node)
+        return None
+
+    def update(self, key: K, value: V):
+        node = TreeNode(key, value)
+        self._update(self.root, node)
 
     # Print the tree
-    def _print_helper(self, curr_ptr, indent, last):
-        if curr_ptr is not None:
+    def _print_helper(self, root: TreeNode, indent: str, last: bool):
+        if root is not None:
             sys.stdout.write(indent)
             if last:
                 sys.stdout.write("R----")
@@ -172,26 +215,26 @@ class AVLTree:
             else:
                 sys.stdout.write("L----")
                 indent += "|    "
-            print(curr_ptr.key)
-            self._print_helper(curr_ptr.left, indent, False)
-            self._print_helper(curr_ptr.right, indent, True)
+            print(root.key)
+            self._print_helper(root.left, indent, False)
+            self._print_helper(root.right, indent, True)
 
-    def print_helper(self, indent, last):
+    def print_helper(self, indent: str, last: bool):
         self._print_helper(self.root, indent, last)
 
-    def _get_all_nodes(self, node: TreeNode) -> List[TreeNode]:
+    def _get_all_nodes(self, node: TreeNode) -> List[tuple[K, V]]:
         results = []
         if not node:
             return results
 
         if node.left:
             results += self._get_all_nodes(node.left)
-        results += [node]
+        results += [node.data]
         if node.right:
             results += self._get_all_nodes(node.right)
         return results
 
-    def get_all_nodes(self) -> List[TreeNode]:
+    def get_all_nodes(self) -> List[tuple[K, V]]:
         return self._get_all_nodes(self.root)
 
     @property
@@ -201,10 +244,25 @@ class AVLTree:
         return self.root.min_node
 
     @property
+    def min_node_value(self):
+        if not self.root:
+            return None
+        return self.root.min_node_value
+
+    @property
     def max_node(self):
         if not self.root:
             return None
         return self.root.max_node
+
+    @property
+    def max_node_value(self):
+        if not self.root:
+            return None
+        return self.root.max_node_value
+
+    def is_empty(self):
+        return self.root is None
 
 # myTree = AVLTree()
 # root = None
@@ -221,3 +279,21 @@ class AVLTree:
 # myTree.delete_node(nodes_map[key])
 # print("After Deletion: ")
 # myTree.print_helper("", True)
+
+# myTree = AVLTree()
+# root = None
+# nums = [1, 2, 3]
+# # nodes_map = {}
+# for num in nums:
+#     # nodes_map[num] = TreeNode(num, num)
+#     print("Insert ", num)
+#     myTree.insert_node(num, num)
+#     # root = myTree.insert_node(root, num)
+#
+# myTree.print_helper("", True)
+# key = 2 # 13
+# myTree.delete_node(key)
+# print("After Deletion: ")
+# myTree.print_helper("", True)
+
+# print("All nodes: ", myTree.get_all_nodes())
