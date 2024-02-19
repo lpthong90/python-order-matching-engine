@@ -1,5 +1,5 @@
 from order_book import (OrderData, SideType)
-from tests.common import check
+from tests.common import check_order_book
 
 
 def test_add_order_3():
@@ -26,4 +26,4 @@ def test_add_order_3():
         ], [
         ]
     ]
-    check(inputs, outputs)
+    check_order_book(inputs, outputs)
