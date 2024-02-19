@@ -61,7 +61,7 @@ class PriceLevel:
         return order
 
 
-class Book:
+class OrderBook:
     def __init__(self):
         self.bids_tree: AVLTree[float, PriceLevel] = AVLTree[float, PriceLevel]()
         self.asks_tree: AVLTree[float, PriceLevel] = AVLTree[float, PriceLevel]()
