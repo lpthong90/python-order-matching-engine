@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Union, Dict, NamedTuple, Optional
 
 from order_book.double_linked_list import LinkedList
-from order_book.advanced_avl_tree import AdvancedAVLTree
+from py_simple_trees import AVLTree, AVLNode
 
 
 ID_TYPE = Union[int, str]
@@ -47,7 +47,7 @@ class Order:
             return SideType.SELL
         return SideType.BUY
 
-    def print_out(self): # pragma: no cover
+    def print_out(self):  # pragma: no cover
         print("Order ", self.id, " ", self.price, " ", self.volume, " ", self.origin_volume,
               " ", self.origin_volume - self.volume)
 
@@ -83,12 +83,12 @@ class PriceLevel:
 
 class OrderBook:
     def __init__(self):
-        self.bids_tree: AdvancedAVLTree[float, PriceLevel] = AdvancedAVLTree[float, PriceLevel]()
-        self.asks_tree: AdvancedAVLTree[float, PriceLevel] = AdvancedAVLTree[float, PriceLevel]()
+        self.bids_tree: AVLTree = AVLTree()
+        self.asks_tree: AVLTree = AVLTree()
         self.best_bid_price_level: Optional[PriceLevel] = None
         self.best_ask_price_level: Optional[PriceLevel] = None
 
-        self.price_levels: Dict[float, PriceLevel] = {}
+        self.price_levels: Dict = {}
 
     def add_order(self, order: Order):
         if order.side == SideType.BUY:
@@ -106,9 +106,9 @@ class OrderBook:
     def _delete_price_level(self, side: SideType, price_level: PriceLevel):
         del self.price_levels[price_level.price]
         if side == SideType.BUY:
-            self.bids_tree.delete_node(price_level.price)
+            self.bids_tree.remove(AVLNode(price_level.price))
         else:
-            self.asks_tree.delete_node(price_level.price)
+            self.asks_tree.remove(AVLNode(price_level.price))
 
     def cancel_order(self, order: Order):
         price_level = order.price_level
@@ -119,15 +119,15 @@ class OrderBook:
             self._delete_price_level(order.side, price_level)
 
     def is_empty_bids(self) -> bool:
-        self.bids_tree.is_empty()
+        return self.bids_tree.root is None
 
     def is_empty_asks(self) -> bool:
-        self.asks_tree.is_empty()
+        return self.asks_tree.root is None
 
-    def _add_new_price_level(self, prices_tree: AdvancedAVLTree[float, PriceLevel], best_price_level: PriceLevel, order: Order) -> PriceLevel:
+    def _add_new_price_level(self, prices_tree: AVLTree, best_price_level: PriceLevel, order: Order) -> PriceLevel:
         price_level = PriceLevel(order.price)
         price_level.add_order(order)
-        prices_tree.insert_node(price_level.price, price_level)
+        prices_tree.insert(AVLNode(price_level.price, price_level))
         self.price_levels[order.price] = price_level
 
         if best_price_level is None:
@@ -138,14 +138,14 @@ class OrderBook:
             return price_level
         return best_price_level
 
-    def _add_order(self, price_tree: AdvancedAVLTree[float, PriceLevel],
+    def _add_order(self, price_tree: AVLTree,
                    best_price_level: PriceLevel, order: Order) -> PriceLevel:
         if order.price not in self.price_levels:
             return self._add_new_price_level(price_tree, best_price_level, order)
         else:
             price_level = self.price_levels[order.price]
             price_level.add_order(order)
-            price_tree.update(price_level.price, price_level)
+            price_tree.update(AVLNode(price_level.price, price_level))
             return best_price_level
 
     def _next_best_price_level(self, side: SideType) -> Optional[PriceLevel]:
@@ -154,16 +154,22 @@ class OrderBook:
                 return
             if self.best_bid_price_level.has_no_orders():
                 del self.price_levels[self.best_bid_price_level.price]
-                self.bids_tree.delete_node(self.best_bid_price_level.price)
-                self.best_bid_price_level = self.bids_tree.max_node_value
+                self.bids_tree.remove(AVLNode(self.best_bid_price_level.price))
+                if self.bids_tree.root is not None:
+                    self.best_bid_price_level = self.bids_tree.root.max_node.value
+                else:
+                    self.best_bid_price_level = None
                 return self.best_bid_price_level
         else:  # side == SideType.SELL
             if self.best_ask_price_level is None:
                 return
             if self.best_ask_price_level.has_no_orders():
                 del self.price_levels[self.best_ask_price_level.price]
-                self.asks_tree.delete_node(self.best_ask_price_level.price)
-                self.best_ask_price_level = self.asks_tree.min_node_value
+                self.asks_tree.remove(AVLNode(self.best_ask_price_level.price))
+                if self.asks_tree.root is not None:
+                    self.best_ask_price_level = self.asks_tree.root.min_node.value
+                else:
+                    self.best_ask_price_level = None
                 return self.best_ask_price_level
 
     def _execute_order(self, order: Order, best_price_level: Optional[PriceLevel]) -> (Optional[PriceLevel], dict):

@@ -1,19 +1,12 @@
-import sys
-from typing import TypeVar, List, Tuple, Dict, Optional
+from typing import TypeVar, List, Tuple
 
-from helper import (
-    # build_order_book,
-    build_matching_engine,
-    update_matching_engine,
-    # update_order_book,
-    update_data_to_avl_tree
-)
-from order_book import OrderBook, PriceLevel, Order, MatchingEngine
-from order_book.avl_tree import AVLTree, TreeNode
-from order_book.advanced_avl_tree import AdvancedAVLTree
+from helper import update_matching_engine
+from order_book import OrderBook, MatchingEngine
+from py_simple_trees import AVLTree, AVLNode, TraversalType
 
 K = TypeVar("K")
 V = TypeVar("V")
+AVLBN = TypeVar("AVLBN", bound=AVLNode)
 
 
 def check_order_book(inputs, outputs):
@@ -32,34 +25,29 @@ def check_order_book(inputs, outputs):
     assert bid_price_levels == outputs[1]
 
 
-def check_advanced_avl_tree(inputs, outputs):
-    avl_tree = TestAdvancedAVLTree[int, int]()
-    update_data_to_avl_tree(avl_tree, inputs)
-
-    parents = avl_tree.get_parents()
-    print("parents: ", parents)
-    print("expected parents: ", outputs["parents"])
-
-    assert parents == outputs["parents"]
-
-
 class TestOrderBook(OrderBook):
     def __init__(self):
         super().__init__()
-        self.bids_tree: TestAdvancedAVLTree[float, PriceLevel] = TestAdvancedAVLTree[float, PriceLevel]()
-        self.asks_tree: TestAdvancedAVLTree[float, PriceLevel] = TestAdvancedAVLTree[float, PriceLevel]()
+        self.bids_tree: TestAVLTree = TestAVLTree()
+        self.asks_tree: TestAVLTree = TestAVLTree()
 
     def get_ask_price_levels(self):
-        price_levels = self.asks_tree.get_all_nodes()
-        price_levels.reverse()
-        price_levels = map(lambda pl: (pl[1].price, pl[1].total_volume), price_levels)
-        return price_levels
+        return map(
+            lambda node: (node.value.price, node.value.total_volume),
+            self.asks_tree.traversal(
+                traversal_type=TraversalType.IN_ORDER,
+                reverse=True
+            ),
+        )
 
     def get_bid_price_levels(self):
-        price_levels = self.bids_tree.get_all_nodes()
-        price_levels.reverse()
-        price_levels = map(lambda pl: (pl[1].price, pl[1].total_volume), price_levels)
-        return price_levels
+        return map(
+            lambda node: (node.value.price, node.value.total_volume),
+            self.bids_tree.traversal(
+                traversal_type=TraversalType.IN_ORDER,
+                reverse=True
+            ),
+        )
 
     def print_bids(self): # pragma: no cover
         price_levels = self.get_bid_price_levels()
@@ -87,8 +75,8 @@ class TestMatchingEngine(MatchingEngine):
             order.print_out()
 
 
-class TestAdvancedAVLTree(AdvancedAVLTree[K, V]):
-    def _parents(self, root: TreeNode) -> List[Tuple]:
+class TestAVLTree(AVLTree[K, V, AVLBN]):
+    def _parents(self, root: AVLBN) -> List[Tuple]:
         results = []
         if root is None:
             return results
@@ -107,35 +95,3 @@ class TestAdvancedAVLTree(AdvancedAVLTree[K, V]):
         results = self.get_parents()
         print("Key | ParentKey")
         print(results)
-
-    # Print the tree
-    def _print_helper(self, root: TreeNode[K, V], indent: str, last: bool): # pragma: no cover
-        if root is not None:
-            sys.stdout.write(indent)
-            if last:
-                sys.stdout.write("R----")
-                indent += "     "
-            else:
-                sys.stdout.write("L----")
-                indent += "|    "
-            print(root.key)
-            self._print_helper(root.left, indent, False)
-            self._print_helper(root.right, indent, True)
-
-    def print_helper(self, indent: str, last: bool): # pragma: no cover
-        self._print_helper(self.root, indent, last)
-
-    def _get_all_nodes(self, node: TreeNode[K, V]) -> List[tuple[K, V]]:
-        results = []
-        if not node:
-            return results
-
-        if node.left:
-            results += self._get_all_nodes(node.left)
-        results += [node.data]
-        if node.right:
-            results += self._get_all_nodes(node.right)
-        return results
-
-    def get_all_nodes(self) -> List[tuple[K, V]]:
-        return self._get_all_nodes(self.root)
