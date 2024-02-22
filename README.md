@@ -58,14 +58,18 @@ class PriceLevel:
         self.total_volume: float = 0
         self.orders: LinkedList[int, Order] = LinkedList[int, Order]()
 
+class PriceLevelAVLTree(AVLTree):
+    def __init__(self):
+        super().__init__()
+
 class OrderBook:
     def __init__(self):
-        self.bids_tree: AdvancedAVLTree[float, PriceLevel] = AdvancedAVLTree[float, PriceLevel]()
-        self.asks_tree: AdvancedAVLTree[float, PriceLevel] = AdvancedAVLTree[float, PriceLevel]()
+        self.bids_tree: PriceLevelAVLTree = PriceLevelAVLTree()
+        self.asks_tree: PriceLevelAVLTree = PriceLevelAVLTree()
         self.best_bid_price_level: Optional[PriceLevel] = None
         self.best_ask_price_level: Optional[PriceLevel] = None
 
-        self.price_levels: Dict[float, PriceLevel] = {}
+        self.price_levels: Dict = {}
 
 class MatchingEngine:
     def __init__(self, order_book: Optional[OrderBook]):
