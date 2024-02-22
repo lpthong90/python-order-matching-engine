@@ -1,8 +1,8 @@
 from typing import TypeVar, List, Tuple
 
 from helper import update_matching_engine
-from order_book import OrderBook, MatchingEngine
-from py_simple_trees import AVLTree, AVLNode, TraversalType
+from order_book import OrderBook, MatchingEngine, PriceLevelAVLTree
+from py_simple_trees import AVLNode, TraversalType
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -35,8 +35,7 @@ class TestOrderBook(OrderBook):
         return map(
             lambda node: (node.value.price, node.value.total_volume),
             self.asks_tree.traversal(
-                traversal_type=TraversalType.IN_ORDER,
-                reverse=True
+                traversal_type=TraversalType.IN_ORDER, reverse=True
             ),
         )
 
@@ -44,22 +43,21 @@ class TestOrderBook(OrderBook):
         return map(
             lambda node: (node.value.price, node.value.total_volume),
             self.bids_tree.traversal(
-                traversal_type=TraversalType.IN_ORDER,
-                reverse=True
+                traversal_type=TraversalType.IN_ORDER, reverse=True
             ),
         )
 
-    def print_bids(self): # pragma: no cover
+    def print_bids(self):  # pragma: no cover
         price_levels = self.get_bid_price_levels()
         for pl in price_levels:
             print("Bid ", pl[0], pl[1])
 
-    def print_asks(self): # pragma: no cover
+    def print_asks(self):  # pragma: no cover
         price_levels = self.get_ask_price_levels()
         for pl in price_levels:
             print("Ask ", pl[0], pl[1])
 
-    def print_book(self): # pragma: no cover
+    def print_book(self):  # pragma: no cover
         print("=====================")
         print("Side | Price | Volume")
         self.print_asks()
@@ -68,15 +66,15 @@ class TestOrderBook(OrderBook):
 
 
 class TestMatchingEngine(MatchingEngine):
-    def print_filled_orders(self): # pragma: no cover
+    def print_filled_orders(self):  # pragma: no cover
         print("======Filled Orders=======")
         print("OrderId | Price | Remained | Volume | Filled")
         for order_id, order in self.filled_orders.items():
             order.print_out()
 
 
-class TestAVLTree(AVLTree[K, V, AVLBN]):
-    def _parents(self, root: AVLBN) -> List[Tuple]:
+class TestAVLTree(PriceLevelAVLTree):
+    def _parents(self, root: AVLNode) -> List[Tuple]:
         results = []
         if root is None:
             return results
@@ -91,7 +89,7 @@ class TestAVLTree(AVLTree[K, V, AVLBN]):
     def get_parents(self):
         return self._parents(self.root)
 
-    def print_parents(self): # pragma: no cover
+    def print_parents(self):  # pragma: no cover
         results = self.get_parents()
         print("Key | ParentKey")
         print(results)

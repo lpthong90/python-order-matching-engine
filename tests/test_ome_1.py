@@ -15,8 +15,6 @@ def test_add_order_1():
             # (price, volume)
         ],
         # Filled orders
-        [
-        ]
+        [],
     ]
     check_order_book(inputs, outputs)
-

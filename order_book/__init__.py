@@ -1,8 +1,8 @@
 from enum import Enum
-from typing import Union, Dict, NamedTuple, Optional
+from typing import Union, Dict, NamedTuple, Optional, Tuple
+from py_simple_trees import AVLTree, AVLNode, TraversalType  # type: ignore
 
 from order_book.double_linked_list import LinkedList
-from py_simple_trees import AVLTree, AVLNode, TraversalType
 
 ID_TYPE = Union[int, str]
 
@@ -47,15 +47,25 @@ class Order:
         return SideType.BUY
 
     def print_out(self):  # pragma: no cover
-        print("Order ", self.id, " ", self.price, " ", self.volume, " ", self.origin_volume,
-              " ", self.origin_volume - self.volume)
+        print(
+            "Order ",
+            self.id,
+            " ",
+            self.price,
+            " ",
+            self.volume,
+            " ",
+            self.origin_volume,
+            " ",
+            self.origin_volume - self.volume,
+        )
 
 
 class PriceLevel:
     def __init__(self, price: float):
-        self.price: float = price
+        self.price = price
         self.total_volume: float = 0
-        self.orders: LinkedList[int, Order] = LinkedList[int, Order]()
+        self.orders = LinkedList[Union[int, str], Order]()
 
     def add_order(self, order: Order):
         if self.orders.add(order.id, order):
@@ -76,41 +86,66 @@ class PriceLevel:
         if order_node is None:
             return None
         order = order_node.value
-        self.total_volume -= order.volume
+        if order is not None:
+            self.total_volume -= order.volume
         return order
 
     def has_no_orders(self):
         return self.orders.size == 0
 
 
+class PriceLevelAVLTree(AVLTree[float, PriceLevel, AVLNode]):
+    def __init__(self):
+        super().__init__()
+        self.root = None
+
+    def insert(self, price_level: PriceLevel):
+        self.root = self._insert(
+            self.root, AVLNode(key=price_level.price, value=price_level)
+        )
+
+    def remove(self, price_level: PriceLevel):
+        self.root = self._remove(self.root, AVLNode(key=price_level.price))
+
+    def update(self, price_level: PriceLevel):
+        self.root = self._update(
+            self.root, AVLNode(key=price_level.price, value=price_level)
+        )
+
+
 class OrderBook:
     def __init__(self):
-        self.bids_tree: AVLTree = AVLTree()
-        self.asks_tree: AVLTree = AVLTree()
-        self.best_bid_price_level: Optional[PriceLevel] = None
-        self.best_ask_price_level: Optional[PriceLevel] = None
+        self.bids_tree = PriceLevelAVLTree()
+        self.asks_tree = PriceLevelAVLTree()
+        self.best_bid_price_level = None
+        self.best_ask_price_level = None
 
-        self.price_levels: Dict = {}
+        self.price_levels = {}
 
     def add_order(self, order: Order):
         if order.side == SideType.BUY:
-            self.best_bid_price_level = self._add_order(self.bids_tree, self.best_bid_price_level, order)
+            self.best_bid_price_level = self._add_order(
+                self.bids_tree, self.best_bid_price_level, order
+            )
         else:  # order.side == SideType.SELL:
-            self.best_ask_price_level = self._add_order(self.asks_tree, self.best_ask_price_level, order)
+            self.best_ask_price_level = self._add_order(
+                self.asks_tree, self.best_ask_price_level, order
+            )
 
     def execute_order(self, order: Order) -> dict:
         if order.side == SideType.BUY:
-            self.asks_tree, self.best_ask_price_level, filled_orders = self._execute_order(order, self.asks_tree)
+            (
+                self.asks_tree,
+                self.best_ask_price_level,
+                filled_orders,
+            ) = self._execute_order(order, self.asks_tree)
         else:  # order.side == 'SELL':
-            self.bids_tree, self.best_bid_price_level, filled_orders = self._execute_order(order, self.bids_tree)
+            (
+                self.bids_tree,
+                self.best_bid_price_level,
+                filled_orders,
+            ) = self._execute_order(order, self.bids_tree)
         return filled_orders
-
-    def _delete_price_level(self, side: SideType, price_level: PriceLevel):
-        del self.price_levels[price_level.price]
-        if side == SideType.BUY:
-            self.bids_tree.remove(AVLNode(price_level.price))
-        else:
-            self.asks_tree.remove(AVLNode(price_level.price))
 
     def cancel_order(self, order: Order):
         price_level = order.price_level
@@ -118,7 +153,7 @@ class OrderBook:
             return
         price_level.cancel_order(order)
         if price_level.orders.size == 0:
-            self._delete_price_level(order.side, price_level)
+            self._remove_price_level(order.side, price_level)
 
     def is_empty_bids(self) -> bool:
         return self.bids_tree.root is None
@@ -126,10 +161,21 @@ class OrderBook:
     def is_empty_asks(self) -> bool:
         return self.asks_tree.root is None
 
-    def _add_new_price_level(self, prices_tree: AVLTree, best_price_level: PriceLevel, order: Order) -> PriceLevel:
+    def is_empty(self, side: SideType) -> bool:
+        if side == SideType.BUY:
+            return self.is_empty_bids()
+        else:
+            return self.is_empty_asks()
+
+    def _add_new_price_level(
+        self,
+        prices_tree: PriceLevelAVLTree,
+        best_price_level: Optional[PriceLevel],
+        order: Order,
+    ) -> PriceLevel:
         price_level = PriceLevel(order.price)
         price_level.add_order(order)
-        prices_tree.insert(AVLNode(price_level.price, price_level))
+        prices_tree.insert(price_level)
         self.price_levels[order.price] = price_level
 
         if best_price_level is None:
@@ -140,22 +186,28 @@ class OrderBook:
             return price_level
         return best_price_level
 
-    def _add_order(self, price_tree: AVLTree,
-                   best_price_level: PriceLevel, order: Order) -> PriceLevel:
+    def _add_order(
+        self,
+        price_tree: PriceLevelAVLTree,
+        best_price_level: Optional[PriceLevel],
+        order: Order,
+    ) -> Optional[PriceLevel]:
         if order.price not in self.price_levels:
             return self._add_new_price_level(price_tree, best_price_level, order)
         else:
             price_level = self.price_levels[order.price]
             price_level.add_order(order)
-            price_tree.update(AVLNode(price_level.price, price_level))
+            # price_tree.update(price_level)
             return best_price_level
 
-    def _execute_order(self, order: Order, price_levels_tree: AVLTree) -> (AVLTree, Optional[PriceLevel], dict):
+    def _execute_order(
+        self, order: Order, price_levels_tree: PriceLevelAVLTree
+    ) -> Tuple[AVLTree, Optional[PriceLevel], dict]:
         filled_orders = {}
         clear_price_levels = []
-        best_price_level = Optional[PriceLevel]
+        best_price_level = None
 
-        for price_level in self._best_price_levels(order):
+        for price_level in self._best_price_levels(order.other_side):
             best_price_level = price_level
             maker_order = price_level.pop_order()
             while order.volume > 0 and maker_order is not None:
@@ -184,7 +236,7 @@ class OrderBook:
 
         for price_level in clear_price_levels:
             del self.price_levels[price_level.price]
-            price_levels_tree.remove(AVLNode(key=price_level.price))
+            price_levels_tree.remove(price_level)
 
         if price_levels_tree.root is None:
             best_price_level = None
@@ -194,30 +246,43 @@ class OrderBook:
 
         return price_levels_tree, best_price_level, filled_orders
 
-    def _best_price_levels(self, order):
-        if order.side == SideType.BUY:
-            for price_level_node in self.asks_tree.traversal(traversal_type=TraversalType.IN_ORDER):
+    def _best_price_levels(self, side: SideType):
+        if side == SideType.SELL:
+            for price_level_node in self.asks_tree.traversal(
+                traversal_type=TraversalType.IN_ORDER
+            ):
                 yield price_level_node.value
         else:  # order.side == SideType.SELL
-            for price_level_node in self.bids_tree.traversal(traversal_type=TraversalType.IN_ORDER, reverse=True):
+            for price_level_node in self.bids_tree.traversal(
+                traversal_type=TraversalType.IN_ORDER, reverse=True
+            ):
                 yield price_level_node.value
+
+    def _remove_price_level(self, side: SideType, price_level: PriceLevel):
+        del self.price_levels[price_level.price]
+        if side == SideType.BUY:
+            self.bids_tree.remove(price_level)
+        else:
+            self.asks_tree.remove(price_level)
 
 
 class MatchingEngine:
     def __init__(self, order_book: Optional[OrderBook]):
         self.order_book = order_book or OrderBook()
 
-        self.orders: Dict[int, Order] = {}
+        self.orders: Dict[Union[int, str], Order] = {}
         self.filled_orders: Dict[int, Order] = {}
 
     def execute_order(self, order: Order):
         if order.id in self.orders:
             return
 
-        if order.side == SideType.BUY:
-            filled_orders = self._execute_buy_order(order)
-        else:  # order.side == SideType.SELL
-            filled_orders = self._execute_sell_order(order)
+        if self.order_book.is_empty(order.other_side):
+            self.order_book.add_order(order)
+            self.orders[order.id] = order
+            filled_orders = {}
+        else:
+            filled_orders = self.order_book.execute_order(order)
 
         self.filled_orders = {**self.filled_orders, **filled_orders}
 
@@ -227,17 +292,3 @@ class MatchingEngine:
 
         order = self.orders[order.id]
         self.order_book.cancel_order(order)
-
-    def _execute_buy_order(self, order: Order) -> dict:
-        if self.order_book.is_empty_asks():
-            self.order_book.add_order(order)
-            self.orders[order.id] = order
-            return {}
-        return self.order_book.execute_order(order)
-
-    def _execute_sell_order(self, order: Order) -> dict:
-        if self.order_book.is_empty_bids():
-            self.order_book.add_order(order)
-            self.orders[order.id] = order
-            return {}
-        return self.order_book.execute_order(order)

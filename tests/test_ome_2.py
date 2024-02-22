@@ -1,4 +1,4 @@
-from order_book import (OrderData, SideType)
+from order_book import OrderData, SideType
 from tests.common import check_order_book
 
 
@@ -17,8 +17,7 @@ def test_add_order_2_1():
             # (price, volume)
         ],
         # Filled orders
-        [
-        ]
+        [],
     ]
     check_order_book(inputs, outputs)
 
@@ -33,12 +32,9 @@ def test_add_order_2_2():
             # (price, volume)
         ],
         # Bids
-        [
-            (2, 2)
-        ],
+        [(2, 2)],
         # Filled orders
-        [
-        ]
+        [],
     ]
     check_order_book(inputs, outputs)
 
@@ -49,16 +45,13 @@ def test_add_order_2_3():
     ]
     outputs = [
         # Asks
-        [
-            (2, 2)
-        ],
+        [(2, 2)],
         # Bids
         [
             # (price, volume)
         ],
         # Filled orders
-        [
-        ]
+        [],
     ]
     check_order_book(inputs, outputs)
 
@@ -75,12 +68,9 @@ def test_add_order_2_4():
             # (price, volume)
         ],
         # Bids
-        [
-            (2, 7)
-        ],
+        [(2, 7)],
         # Filled orders
-        [
-        ]
+        [],
     ]
     check_order_book(inputs, outputs)
 
@@ -93,16 +83,13 @@ def test_add_order_2_5():
     ]
     outputs = [
         # Asks
-        [
-            (2, 5)
-        ],
+        [(2, 5)],
         # Bids
         [
             # (price, volume)
         ],
         # Filled orders
-        [
-        ]
+        [],
     ]
     check_order_book(inputs, outputs)
 
@@ -112,7 +99,6 @@ def test_add_order_2_6():
         OrderData(id=None, price=2, volume=2, side=SideType.BUY),
         OrderData(id=None, price=2, volume=2, side=SideType.BUY),
         OrderData(id=None, price=2, volume=3, side=SideType.BUY),
-
         OrderData(id=None, price=2, volume=4, side=SideType.SELL),
     ]
     outputs = [
@@ -121,12 +107,9 @@ def test_add_order_2_6():
             # (price, volume)
         ],
         # Bids
-        [
-            (2, 3)
-        ],
+        [(2, 3)],
         # Filled orders
-        [
-        ]
+        [],
     ]
     check_order_book(inputs, outputs)
 
@@ -140,16 +123,13 @@ def test_add_order_2_7():
     ]
     outputs = [
         # Asks
-        [
-            (2, 1)
-        ],
+        [(2, 1)],
         # Bids
         [
             # (price, volume)
         ],
         # Filled orders
-        [
-        ]
+        [],
     ]
     check_order_book(inputs, outputs)
 
@@ -164,15 +144,10 @@ def test_add_order_2_8():
     ]
     outputs = [
         # Asks
-        [
-            (2, 1)
-        ],
+        [(2, 1)],
         # Bids
-        [
-            (1, 4)
-        ],
+        [(1, 4)],
         # Filled orders
-        [
-        ]
+        [],
     ]
     check_order_book(inputs, outputs)

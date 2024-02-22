@@ -1,4 +1,4 @@
-from typing import Union, TypeVar, Generic, List
+from typing import Union, TypeVar, Generic, List, Optional
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -15,8 +15,8 @@ class LinkedNode(Generic[K, V]):
 class LinkedList(Generic[K, V]):
     def __init__(self):
         self.size = 0
-        self.head: Union[LinkedNode, None] = None
-        self.tail: Union[LinkedNode, None] = None
+        self.head = None
+        self.tail = None
 
     def _add_first_node(self, node: LinkedNode) -> bool:
         self.head = self.tail = node
@@ -56,7 +56,7 @@ class LinkedList(Generic[K, V]):
     def add(self, key: K, value: V) -> bool:
         return self.add_tail(key, value)
 
-    def pop(self) -> LinkedNode:
+    def pop(self) -> Optional[LinkedNode]:
         if self.size == 0:
             return None
 
@@ -77,7 +77,7 @@ class LinkedList(Generic[K, V]):
         node = self.find(key)
 
         if node is None:
-            return
+            return False
 
         if self.size == 1:
             self.head = self.tail = None
@@ -86,23 +86,27 @@ class LinkedList(Generic[K, V]):
 
         if self.head is node:
             self.head = node.next
-            self.head.prev = None
+            if self.head is not None:
+                self.head.prev = None
             self.size -= 1
             return True
 
         if self.tail is node:
             self.tail = node.prev
-            self.tail.next = None
+            if self.tail is not None:
+                self.tail.next = None
             self.size -= 1
             return True
 
-        node.prev.next = node.next
-        node.next.prev = node.prev
+        if node.prev is not None:
+            node.prev.next = node.next
+        if node.next is not None:
+            node.next.prev = node.prev
         self.size -= 1
         return True
 
     def get_all_values(self) -> List[V]:
-        result = []
+        result: List[V] = []
         if self.head is None:
             return result
 
