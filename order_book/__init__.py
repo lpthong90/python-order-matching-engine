@@ -2,8 +2,7 @@ from enum import Enum
 from typing import Union, Dict, NamedTuple, Optional
 
 from order_book.double_linked_list import LinkedList
-from py_simple_trees import AVLTree, AVLNode
-
+from py_simple_trees import AVLTree, AVLNode, TraversalType
 
 ID_TYPE = Union[int, str]
 
@@ -72,8 +71,11 @@ class PriceLevel:
         if self.orders.remove(order.id):
             self.total_volume -= order.volume
 
-    def pop_order(self) -> Order:
-        order = self.orders.pop().value
+    def pop_order(self) -> Optional[Order]:
+        order_node = self.orders.pop()
+        if order_node is None:
+            return None
+        order = order_node.value
         self.total_volume -= order.volume
         return order
 
@@ -98,9 +100,9 @@ class OrderBook:
 
     def execute_order(self, order: Order) -> dict:
         if order.side == SideType.BUY:
-            self.best_ask_price_level, filled_orders = self._execute_order(order, self.best_ask_price_level)
+            self.asks_tree, self.best_ask_price_level, filled_orders = self._execute_order(order, self.asks_tree)
         else:  # order.side == 'SELL':
-            self.best_bid_price_level, filled_orders = self._execute_order(order, self.best_bid_price_level)
+            self.bids_tree, self.best_bid_price_level, filled_orders = self._execute_order(order, self.bids_tree)
         return filled_orders
 
     def _delete_price_level(self, side: SideType, price_level: PriceLevel):
@@ -148,67 +150,57 @@ class OrderBook:
             price_tree.update(AVLNode(price_level.price, price_level))
             return best_price_level
 
-    def _next_best_price_level(self, side: SideType) -> Optional[PriceLevel]:
-        if side == SideType.BUY:
-            if self.best_bid_price_level is None:
-                return
-            if self.best_bid_price_level.has_no_orders():
-                del self.price_levels[self.best_bid_price_level.price]
-                self.bids_tree.remove(AVLNode(self.best_bid_price_level.price))
-                if self.bids_tree.root is not None:
-                    self.best_bid_price_level = self.bids_tree.root.max_node.value
-                else:
-                    self.best_bid_price_level = None
-                return self.best_bid_price_level
-        else:  # side == SideType.SELL
-            if self.best_ask_price_level is None:
-                return
-            if self.best_ask_price_level.has_no_orders():
-                del self.price_levels[self.best_ask_price_level.price]
-                self.asks_tree.remove(AVLNode(self.best_ask_price_level.price))
-                if self.asks_tree.root is not None:
-                    self.best_ask_price_level = self.asks_tree.root.min_node.value
-                else:
-                    self.best_ask_price_level = None
-                return self.best_ask_price_level
-
-    def _execute_order(self, order: Order, best_price_level: Optional[PriceLevel]) -> (Optional[PriceLevel], dict):
+    def _execute_order(self, order: Order, price_levels_tree: AVLTree) -> (AVLTree, Optional[PriceLevel], dict):
         filled_orders = {}
+        clear_price_levels = []
+        best_price_level = Optional[PriceLevel]
 
-        while order.volume > 0 and self._is_matched_best_price(order, best_price_level):
-            if best_price_level.has_no_orders():
-                best_price_level = self._next_best_price_level(order.other_side)
+        for price_level in self._best_price_levels(order):
+            best_price_level = price_level
+            maker_order = price_level.pop_order()
+            while order.volume > 0 and maker_order is not None:
+                if not maker_order.match_order(order):
+                    price_level.re_add_order(maker_order)
+                    break
 
-            if best_price_level is None:
+                matched_volume = min(maker_order.volume, order.volume)
+                maker_order.volume -= matched_volume
+                order.volume -= matched_volume
+
+                filled_orders[maker_order.id] = maker_order
+                filled_orders[order.id] = order
+
+                if order.volume > 0:
+                    if maker_order.volume == 0:
+                        maker_order = price_level.pop_order()
+                else:
+                    if maker_order.volume > 0:
+                        price_level.re_add_order(maker_order)
+
+            if maker_order is None or price_level.has_no_orders():
+                clear_price_levels.append(price_level)
+            if order.volume == 0:
                 break
 
-            maker_order = best_price_level.pop_order()
-            if not maker_order.match_order(order):
-                best_price_level.re_add_order(maker_order)
-                break
+        for price_level in clear_price_levels:
+            del self.price_levels[price_level.price]
+            price_levels_tree.remove(AVLNode(key=price_level.price))
 
-            matched_volume = min(maker_order.volume, order.volume)
-            maker_order.volume -= matched_volume
-            order.volume -= matched_volume
-
-            filled_orders[maker_order.id] = maker_order
-            filled_orders[order.id] = order
-
-            if maker_order.volume > 0:
-                best_price_level.re_add_order(maker_order)
-
-        if best_price_level is not None and best_price_level.orders.size == 0:
-            best_price_level = self._next_best_price_level(order.other_side)
+        if price_levels_tree.root is None:
+            best_price_level = None
 
         if order.volume > 0:
             self.add_order(order)
 
-        return best_price_level, filled_orders
+        return price_levels_tree, best_price_level, filled_orders
 
-    def _is_matched_best_price(self, order: Order, best_price_level: PriceLevel) -> bool:
-        if best_price_level is None:
-            return False
-        return order.match_price(best_price_level.price)
+    def _best_price_levels(self, order):
+        if order.side == SideType.BUY:
+            for price_level_node in self.asks_tree.traversal(traversal_type=TraversalType.IN_ORDER):
+                yield price_level_node.value
+        else:  # order.side == SideType.SELL
+            for price_level_node in self.bids_tree.traversal(traversal_type=TraversalType.IN_ORDER, reverse=True):
+                yield price_level_node.value
 
 
 class MatchingEngine:
