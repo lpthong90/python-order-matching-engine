@@ -16,13 +16,24 @@ def check_order_book(inputs, outputs):
 
     ask_price_levels = list(matching_engine.order_book.get_ask_price_levels())
     print("ask_price_levels: ", ask_price_levels)
-    print("expected ask_price_levels: ", outputs[0])
+    print("expected ask_price_levels: ", outputs['asks'])
     bid_price_levels = list(matching_engine.order_book.get_bid_price_levels())
     print("bid_price_levels: ", bid_price_levels)
-    print("expected bid_price_levels: ", outputs[1])
+    print("expected bid_price_levels: ", outputs['bids'])
 
-    assert ask_price_levels == outputs[0]
-    assert bid_price_levels == outputs[1]
+    assert ask_price_levels == outputs['asks']
+    assert bid_price_levels == outputs['bids']
+
+    if ask_price_levels.__len__() > 0:
+        assert matching_engine.order_book.best_ask_price_level.price == ask_price_levels[-1][0]
+        assert matching_engine.order_book.best_ask_price_level.total_quantity == ask_price_levels[-1][1]
+    else:
+        assert matching_engine.order_book.best_ask_price_level is None
+    if bid_price_levels.__len__() > 0:
+        assert matching_engine.order_book.best_bid_price_level.price == bid_price_levels[0][0]
+        assert matching_engine.order_book.best_bid_price_level.total_quantity == bid_price_levels[0][1]
+    else:
+        assert matching_engine.order_book.best_bid_price_level is None
 
 
 class TestOrderBook(OrderBook):

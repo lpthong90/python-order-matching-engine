@@ -150,6 +150,22 @@ class PriceLevelAVLTree(AVLTree[float, PriceLevel, AVLNode]):
             self.root, AVLNode(key=price_level.price, value=price_level)
         )
 
+    @property
+    def min_price_level(self) -> Optional[PriceLevel]:
+        if self.root is None:
+            return None
+        if self.root.min_node is None:
+            return None
+        return self.root.min_node.value
+
+    @property
+    def max_price_level(self) -> Optional[PriceLevel]:
+        if self.root is None:
+            return None
+        if self.root.max_node is None:
+            return None
+        return self.root.max_node.value
+
 
 class OrderBook:
     def __init__(self):
@@ -294,8 +310,15 @@ class OrderBook:
         del self.price_levels[price_level.price]
         if side == SideType.BUY:
             self.bids_tree.remove(price_level)
+            if self.best_bid_price_level == price_level:
+                self.best_bid_price_level = self.bids_tree.max_price_level
         else:
             self.asks_tree.remove(price_level)
+            if self.best_ask_price_level == price_level:
+                if self.asks_tree.root is None:
+                    self.best_ask_price_level = None
+                else:
+                    self.best_ask_price_level = self.asks_tree.min_price_level
 
 
 class MatchingEngine:

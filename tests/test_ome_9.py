@@ -12,13 +12,13 @@ def test_add_order_1():
         OrderData(id=None, price=6, quantity=3, side=SideType.SELL),
         OrderData(id=None, price=1, quantity=5, side=SideType.SELL),
     ]
-    outputs = [
-        [
+    outputs = {
+        'asks': [
             (6, 3),
             (5, 2),
             (4, 1),
         ],
-        [(1, 1)],
-        [],
-    ]
+        'bids': [(1, 1)],
+        'trades': [],
+    }
     check_order_book(inputs, outputs)

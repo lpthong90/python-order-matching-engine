@@ -7,18 +7,18 @@ def test_add_order_2_1():
         OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
         OrderData(id=None, price=2, quantity=2, side=SideType.SELL),
     ]
-    outputs = [
+    outputs = {
         # Asks
-        [
+        'asks': [
             # (price, volume)
         ],
         # Bids
-        [
+        'bids': [
             # (price, volume)
         ],
         # Filled orders
-        [],
-    ]
+        'trades': [],
+    }
     check_order_book(inputs, outputs)
 
 
@@ -26,16 +26,16 @@ def test_add_order_2_2():
     inputs = [
         OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
     ]
-    outputs = [
+    outputs = {
         # Asks
-        [
+        'asks': [
             # (price, volume)
         ],
         # Bids
-        [(2, 2)],
+        'bids': [(2, 2)],
         # Filled orders
-        [],
-    ]
+        'trades': [],
+    }
     check_order_book(inputs, outputs)
 
 
@@ -43,16 +43,16 @@ def test_add_order_2_3():
     inputs = [
         OrderData(id=None, price=2, quantity=2, side=SideType.SELL),
     ]
-    outputs = [
+    outputs = {
         # Asks
-        [(2, 2)],
+        'asks': [(2, 2)],
         # Bids
-        [
+        'bids': [
             # (price, volume)
         ],
         # Filled orders
-        [],
-    ]
+        'trades': [],
+    }
     check_order_book(inputs, outputs)
 
 
@@ -62,16 +62,16 @@ def test_add_order_2_4():
         OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
         OrderData(id=None, price=2, quantity=3, side=SideType.BUY),
     ]
-    outputs = [
+    outputs = {
         # Asks
-        [
+        'asks': [
             # (price, volume)
         ],
         # Bids
-        [(2, 7)],
+        'bids': [(2, 7)],
         # Filled orders
-        [],
-    ]
+        'trades': [],
+    }
     check_order_book(inputs, outputs)
 
 
@@ -81,16 +81,16 @@ def test_add_order_2_5():
         OrderData(id=None, price=2, quantity=1, side=SideType.SELL),
         OrderData(id=None, price=2, quantity=2, side=SideType.SELL),
     ]
-    outputs = [
+    outputs = {
         # Asks
-        [(2, 5)],
+        'asks': [(2, 5)],
         # Bids
-        [
+        'bids': [
             # (price, volume)
         ],
         # Filled orders
-        [],
-    ]
+        'trades': [],
+    }
     check_order_book(inputs, outputs)
 
 
@@ -101,16 +101,16 @@ def test_add_order_2_6():
         OrderData(id=None, price=2, quantity=3, side=SideType.BUY),
         OrderData(id=None, price=2, quantity=4, side=SideType.SELL),
     ]
-    outputs = [
+    outputs = {
         # Asks
-        [
+        'asks': [
             # (price, volume)
         ],
         # Bids
-        [(2, 3)],
+        'bids': [(2, 3)],
         # Filled orders
-        [],
-    ]
+        'trades': [],
+    }
     check_order_book(inputs, outputs)
 
 
@@ -121,16 +121,16 @@ def test_add_order_2_7():
         OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
         OrderData(id=None, price=2, quantity=3, side=SideType.BUY),
     ]
-    outputs = [
+    outputs = {
         # Asks
-        [(2, 1)],
+        'asks': [(2, 1)],
         # Bids
-        [
+        'bids': [
             # (price, volume)
         ],
         # Filled orders
-        [],
-    ]
+        'trades': [],
+    }
     check_order_book(inputs, outputs)
 
 
@@ -142,12 +142,12 @@ def test_add_order_2_8():
         OrderData(id=None, price=2, quantity=2, side=SideType.SELL),
         OrderData(id=None, price=1, quantity=4, side=SideType.BUY),
     ]
-    outputs = [
+    outputs = {
         # Asks
-        [(2, 1)],
+        'asks': [(2, 1)],
         # Bids
-        [(1, 4)],
+        'bids': [(1, 4)],
         # Filled orders
-        [],
-    ]
+        'trades': [],
+    }
     check_order_book(inputs, outputs)
