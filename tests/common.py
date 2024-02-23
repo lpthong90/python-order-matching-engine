@@ -33,7 +33,7 @@ class TestOrderBook(OrderBook):
 
     def get_ask_price_levels(self):
         return map(
-            lambda node: (node.value.price, node.value.total_volume),
+            lambda node: (node.value.price, node.value.total_quantity),
             self.asks_tree.traversal(
                 traversal_type=TraversalType.IN_ORDER, reverse=True
             ),
@@ -41,7 +41,7 @@ class TestOrderBook(OrderBook):
 
     def get_bid_price_levels(self):
         return map(
-            lambda node: (node.value.price, node.value.total_volume),
+            lambda node: (node.value.price, node.value.total_quantity),
             self.bids_tree.traversal(
                 traversal_type=TraversalType.IN_ORDER, reverse=True
             ),

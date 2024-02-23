@@ -4,8 +4,8 @@ from tests.common import check_order_book
 
 def test_add_order_2_1():
     inputs = [
-        OrderData(id=None, price=2, volume=2, side=SideType.BUY),
-        OrderData(id=None, price=2, volume=2, side=SideType.SELL),
+        OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=2, side=SideType.SELL),
     ]
     outputs = [
         # Asks
@@ -24,7 +24,7 @@ def test_add_order_2_1():
 
 def test_add_order_2_2():
     inputs = [
-        OrderData(id=None, price=2, volume=2, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
     ]
     outputs = [
         # Asks
@@ -41,7 +41,7 @@ def test_add_order_2_2():
 
 def test_add_order_2_3():
     inputs = [
-        OrderData(id=None, price=2, volume=2, side=SideType.SELL),
+        OrderData(id=None, price=2, quantity=2, side=SideType.SELL),
     ]
     outputs = [
         # Asks
@@ -58,9 +58,9 @@ def test_add_order_2_3():
 
 def test_add_order_2_4():
     inputs = [
-        OrderData(id=None, price=2, volume=2, side=SideType.BUY),
-        OrderData(id=None, price=2, volume=2, side=SideType.BUY),
-        OrderData(id=None, price=2, volume=3, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=3, side=SideType.BUY),
     ]
     outputs = [
         # Asks
@@ -77,9 +77,9 @@ def test_add_order_2_4():
 
 def test_add_order_2_5():
     inputs = [
-        OrderData(id=None, price=2, volume=2, side=SideType.SELL),
-        OrderData(id=None, price=2, volume=1, side=SideType.SELL),
-        OrderData(id=None, price=2, volume=2, side=SideType.SELL),
+        OrderData(id=None, price=2, quantity=2, side=SideType.SELL),
+        OrderData(id=None, price=2, quantity=1, side=SideType.SELL),
+        OrderData(id=None, price=2, quantity=2, side=SideType.SELL),
     ]
     outputs = [
         # Asks
@@ -96,10 +96,10 @@ def test_add_order_2_5():
 
 def test_add_order_2_6():
     inputs = [
-        OrderData(id=None, price=2, volume=2, side=SideType.BUY),
-        OrderData(id=None, price=2, volume=2, side=SideType.BUY),
-        OrderData(id=None, price=2, volume=3, side=SideType.BUY),
-        OrderData(id=None, price=2, volume=4, side=SideType.SELL),
+        OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=3, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=4, side=SideType.SELL),
     ]
     outputs = [
         # Asks
@@ -116,10 +116,10 @@ def test_add_order_2_6():
 
 def test_add_order_2_7():
     inputs = [
-        OrderData(id=None, price=2, volume=2, side=SideType.BUY),
-        OrderData(id=None, price=2, volume=8, side=SideType.SELL),
-        OrderData(id=None, price=2, volume=2, side=SideType.BUY),
-        OrderData(id=None, price=2, volume=3, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=8, side=SideType.SELL),
+        OrderData(id=None, price=2, quantity=2, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=3, side=SideType.BUY),
     ]
     outputs = [
         # Asks
@@ -136,11 +136,11 @@ def test_add_order_2_7():
 
 def test_add_order_2_8():
     inputs = [
-        OrderData(id=None, price=3, volume=4, side=SideType.BUY),
-        OrderData(id=None, price=2, volume=2, side=SideType.SELL),
-        OrderData(id=None, price=2, volume=1, side=SideType.SELL),
-        OrderData(id=None, price=2, volume=2, side=SideType.SELL),
-        OrderData(id=None, price=1, volume=4, side=SideType.BUY),
+        OrderData(id=None, price=3, quantity=4, side=SideType.BUY),
+        OrderData(id=None, price=2, quantity=2, side=SideType.SELL),
+        OrderData(id=None, price=2, quantity=1, side=SideType.SELL),
+        OrderData(id=None, price=2, quantity=2, side=SideType.SELL),
+        OrderData(id=None, price=1, quantity=4, side=SideType.BUY),
     ]
     outputs = [
         # Asks

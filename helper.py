@@ -9,33 +9,14 @@ V = TypeVar("V")
 
 
 def build_order(order_data: OrderData) -> Order:  # pragma: no cover
-    random_id = int(time.time() * 1e6)
+    # random_id = int(time.time() * 1e6)
     order = Order(
-        random_id,
+        # random_id,
         order_data.price,
-        order_data.volume,
+        order_data.quantity,
         order_data.side
     )
     return order
-
-
-def build_order_book(orders_data: list[OrderData]) -> [OrderBook, list[Order]]:  # pragma: no cover
-    order_book = OrderBook()
-    orders = []
-    for order_data in orders_data:
-        order = build_order(order_data)
-        order_book.execute_order(order)
-        orders.append(order)
-    return order_book, orders
-
-
-def update_order_book(order_book: OrderBook, orders_data: list[OrderData]) -> [OrderBook, list[Order]]:  # pragma: no cover
-    orders = []
-    for order_data in orders_data:
-        order = build_order(order_data)
-        order_book.execute_order(order)
-        orders.append(order)
-    return order_book, orders
 
 
 def update_data_to_avl_tree(avl_tree: AVLTree, kv_data: List[Tuple]):  # pragma: no cover
@@ -50,7 +31,7 @@ def update_matching_engine(matching_engine: MatchingEngine, orders_data: list[Or
     orders = []
     for order_data in orders_data:
         order = build_order(order_data)
-        matching_engine.execute_order(order)
+        matching_engine.add_order(order)
         orders.append(order)
     return matching_engine, orders
 
