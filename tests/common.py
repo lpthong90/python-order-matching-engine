@@ -1,6 +1,5 @@
 from typing import TypeVar, List, Tuple
 
-from helper import update_matching_engine
 from order_book import OrderBook, MatchingEngine, PriceLevelAVLTree
 from py_simple_trees import AVLNode, TraversalType
 
@@ -12,7 +11,8 @@ AVLBN = TypeVar("AVLBN", bound=AVLNode)
 def check_order_book(inputs, outputs):
     order_book = TestOrderBook()
     matching_engine = TestMatchingEngine(order_book)
-    matching_engine, orders = update_matching_engine(matching_engine, inputs)
+    for order in inputs:
+        matching_engine.add_order(order)
 
     ask_price_levels = list(matching_engine.order_book.get_ask_price_levels())
     print("ask_price_levels: ", ask_price_levels)

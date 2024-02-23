@@ -186,21 +186,6 @@ class OrderBook:
                 self.asks_tree, self.best_ask_price_level, order
             )
 
-    # def execute_order(self, order: Order) -> dict:
-    #     if order.side == SideType.BUY:
-    #         (
-    #             self.asks_tree,
-    #             self.best_ask_price_level,
-    #             filled_orders,
-    #         ) = self._execute_order(order, self.asks_tree)
-    #     else:  # order.side == 'SELL':
-    #         (
-    #             self.bids_tree,
-    #             self.best_bid_price_level,
-    #             filled_orders,
-    #         ) = self._execute_order(order, self.bids_tree)
-    #     return filled_orders
-
     def cancel_order(self, order: Order):
         price_level = order.price_level
         if price_level is None:
