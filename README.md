@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://lpthong90.dev/python-order-matching-engine"><img style="width:300px" src="/assets/images/thumbnail.jpg" alt="Order Matching Engine"></a>
+    <a href="https://lpthong90.dev/python-order-matching-engine"><img style="width:300px" src="https://lpthong90.dev/python-order-matching-engine/assets/images/thumbnail.jpg" alt="Order Matching Engine"></a>
 </p>
 <p align="center">
     <em>A demo project is a simple order matching engine which using double linked list and AVL tree.</em>
