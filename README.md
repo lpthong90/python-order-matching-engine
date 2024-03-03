@@ -1,6 +1,6 @@
-<!-- <p align="center">
-    <a href="https://lpthong90.dev/rails-messenger"><img style="width:300px" src="https://lpthong90.dev/rails-messenger/public/rails-messenger-thumnail.png" alt="Rails Messenger"></a>
-</p>-->
+<p align="center">
+    <a href="https://lpthong90.dev/python-order-matching-engine"><img style="width:300px" src="/assets/images/thumbnail.jpg" alt="Order Matching Engine"></a>
+</p>
 <p align="center">
     <em>A demo project is a simple order matching engine which using double linked list and AVL tree.</em>
 </p>
@@ -29,7 +29,7 @@ Price levels without any related orders are removed to maintain efficiency in th
 
 Model diagram:
 
-<img src="./images/diagram.png" alt="filter_options"/>
+<img src="/assets/images/diagram.png" alt="filter_options"/>
 
 [//]: # (Add new order flow diagram:)
 
